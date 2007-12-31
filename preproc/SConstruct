@@ -1,0 +1,87 @@
+
+Import('g_env')
+
+env = g_env.Copy()
+
+env.Append(LIBS=['aino','Judy'])
+env.Append(CPPPATH=['#/index'])
+
+# -- Targets --
+
+# Rawstream object
+raws = env.Object('rawstream.c')
+
+# Serializer object
+seri = env.Object('serializer.c')
+
+# IBlock object
+iblo = env.Object('iblock.c')
+
+# Tokenizer
+
+tok_env = env.Copy()
+tok_env.Append(LIBS='z')
+tok_env.Append(LEXFLAGS='-CFa -8 -s -Ptok -i')
+
+tok_env.CFile(target = 'tok.c', source = 'tok.l')
+tok_env.Program('tokenizer', ['tokenizer.c', 'tok.c', 
+                              'encode_pos.c', raws, seri, iblo])
+
+# Charconv
+env.Program('charconv', ['charconv.c', 'charconv_magic.c', raws])
+
+# Dehtml
+deh_env = env.Copy()
+deh_env.Append(LEXFLAGS='-CFa -8 -s -i -Pdeh')
+deh_env.CFile(target = 'deh.c', source = 'dehtml.l')
+
+ent_env = env.Copy()
+ent_env.Append(LEXFLAGS='-CFa -8 -s -Pent')
+ent_env.CFile(target = 'ent.c', source = 'dehtml_ent.l')
+
+whi_env = env.Copy()
+whi_env.Append(LEXFLAGS='-CFa -8 -s -i -Pwhi')
+whi_env.CFile(target = 'whi.c', source = 'dehtml_whi.l')
+
+env.Program('dehtml', ['dehtml.c', 'deh.c', 'ent.c', 'whi.c', raws])
+
+# Collect_stats
+env.Program('collect_stats', ['collect_stats.c', 'stats_lib.c', seri])
+
+# Freq_ixicon
+env.Program('freq_ixicon', ['freq_ixicon.c', 'stats_lib.c'])
+
+# Qexp_tagger
+#env.Program('qexp_tagger', ['qexp_tagger.c', seri])
+
+# Pipepeek
+#env.Program('pipepeek', ['pipepeek.c', seri])
+
+# Bloombags
+#env.Program('bloombags', ['bloombags.c', seri])
+
+# Sweeping coupler
+#env.Program('sweeping_coupler', ['sweeping_coupler.c'])
+
+# Encode_docs
+env.Program('encode_docs', ['encode_docs.c', seri, iblo])
+
+# Encode_info
+env.Program('encode_info', ['encode_info.c', seri, iblo])
+
+# Encode_fwlayers
+env.Program('encode_fwlayers', ['encode_fwlayers.c', '#/index/dexvm.o'])
+
+# Normality_prior
+env.Program('normality_prior', ['normality_prior.c', 'stats_lib.o', '#/index/dexvm.o'])
+
+# Encode_inva
+env.Program('encode_inva', ['encode_inva.c', '#/index/dexvm.o'])
+
+# Build_index
+env.Program('build_index', ['build_index.c'])
+
+# Section_shedder
+#env.Program('section_shedder', ['section_shedder.c', '#/index/dexvm.o'])
+
+

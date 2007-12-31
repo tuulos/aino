@@ -1,0 +1,76 @@
+
+/* TEMPLATE FILE FOR JACK THE REPEATER */
+
+/* Code inside <REPEAT>..</REPEAT> -blocks will be replicated for each
+ * input token. 'TOKEN' -tokens within the blocks are replaced by the
+ * input token. Note that anything beginning with a dollar sign is
+ * reserved for internal use. */
+
+<CODE>
+/*
+ *   lang/snowball_lemmatize.c
+ *   Lemmatizing with Snowball
+ *   
+ *   Copyright (C) 2004-2005 Ville H. Tuulos
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
+
+#include <string.h>
+
+#include <api.h>
+
+#include <dub.h>
+#include <ttypes.h>
+#include <ixemes.h>
+
+<REPEAT>
+#ifndef XID_TOKEN
+#error Language TOKEN not specified in ixemes.h. Bad things will happen.
+#else
+static struct SN_env *zTOKEN;
+extern struct SN_env *TOKEN_create_env(void);
+void TOKEN_stem(struct SN_env *s);
+#endif
+</REPEAT>
+
+void snowball_init(){
+
+        <REPEAT>
+        zTOKEN = TOKEN_create_env();
+        </REPEAT>
+}
+
+const char *snowball_lemmatize(const char *token, u32 lang)
+{
+        switch (lang){
+
+                <REPEAT>
+                case XID_TOKEN: 
+                        SN_set_current(zTOKEN, strlen(token), token);
+                        TOKEN_stem(zTOKEN);
+                        zTOKEN->p[zTOKEN->l] = 0;
+                        return zTOKEN->p;
+                </REPEAT>
+
+                default:
+                        return NULL;
+        }
+
+        return NULL;
+}
+
+</CODE>

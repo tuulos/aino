@@ -1,0 +1,10 @@
+import glob
+
+Import('g_env')
+
+env = g_env.Copy()
+
+sb = env.Program('snowball', glob.glob('*.c'))
+
+Return('sb')
+

@@ -1,0 +1,21 @@
+
+TEMPLATE FILE FOR JACK-THE-REPEATER
+
+This file will be processed to lang_specs.h which maps language
+mnemonic strings to the corresponding language codes. This mapping
+is used for instance by the query parser.
+
+<CODE>
+
+#ifndef __LANG_SPECS_H__
+#define __LANG_SPECS_H__
+
+#include <ttypes.h>
+#include <ixemes.h>
+
+const char   *lang_strs[] = {<REPEAT>"TOKEN",</REPEAT> ""};
+const ixid_t lang_codes[] = {<REPEAT>LANG_TOKEN,</REPEAT> 0};
+
+#endif /* __LANG_SPECS_H__ */
+
+</CODE>

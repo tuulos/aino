@@ -1,0 +1,37 @@
+
+Import('g_env')
+
+env = g_env.Copy()
+
+env.Append(LIBS=['aino','Judy','rt','iberty'])
+
+#zenv = env.Copy()
+#zenv.Append(LIBS='z')
+
+dexvm = env.Object('dexvm.c')
+queryproc = env.Object('query_proc.c')
+rank = env.Object('rank.c')
+score = env.Object('score.c')
+
+#env.Program('score', ['scoremain.c', score, dexvm], LINKFLAGS = "-static")
+#env.Program('rank', ['rankmain.c', score, rank, dexvm, queryproc], LINKFLAGS = "-static")
+env.Library('score', [rank, score, dexvm, queryproc, 'scorecompr.c'])
+
+# Ixpeek
+env.Program('ixpeek.c', LINKFLAGS = "-static")
+
+# Dexpeek
+#denv = env.Copy()
+#denv.Append(LIBS='readline')
+#denv.Program('dexpeek', ['dexpeek.c', dexvm])
+
+# Qexpeek
+env.Program('qexpeek.c')
+
+#if env['DOCBDB']:
+#        benv = env.Copy()
+#        benv.Append(LIBS='db')
+#        benv.Program('docbdb.c', LINKFLAGS = "-static")
+        
+
+

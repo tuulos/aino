@@ -1,0 +1,79 @@
+import imp, glob, os.path
+
+Import('g_env')
+env = g_env.Copy()
+
+# Demand a new Python only for stuff related to the language modules
+if not BUILD_TARGETS or filter(lambda x: "lang" in x, BUILD_TARGETS):
+        EnsurePythonVersion(2,4)
+
+# Initialization..
+jtr = imp.load_source("jacktherepeater", "../utils/jacktherepeater.py")
+bld = Builder(action = jtr.scons_action,
+              suffix = '.c', src_suffix = '.ctmpl')
+env.Append(BUILDERS = {'JTR' : bld})
+
+# Find available languages
+lm_langs = map(lambda x: os.path.splitext(x)[0][6:], glob.glob('lm/lm_LANG*'))
+print "Found lang_detect languages ", ", ".join(lm_langs)
+
+stem_langs = map(lambda x: os.path.splitext(x)[0][6:],\
+        glob.glob('stems/LANG*.sbl'))
+print "Found snowball languages ", ", ".join(stem_langs)
+
+# Snowball
+sb = SConscript(['snowball/SConstruct'])
+
+# Translate stemmers with Snowball
+for l in stem_langs:
+        env.Depends("stems/%s.c" % l, sb)
+        env.Command("stems/%s.c" % l, "stems/%s.sbl" % l,
+                    "lang/snowball/snowball lang/stems/%s.sbl -ep %s_ -o "\
+                    "lang/stems/%s" % (l, l, l))
+
+# Testers
+snolib  = env.StaticLibrary("snowball", glob.glob('snowball_objs/*.c'))
+langobjs = []
+for l in stem_langs:
+        lenv = env.Copy()
+        lenv.Append(CCFLAGS="-DLANG=%s" % l)
+        lenv.Append(CPPPATH="snowball_objs")
+        lo = lenv.Object("stems/%s.c" % l)
+        to = lenv.Object("stems/test_%s" % l, 'stem_test.c')
+        lenv.Program("test_%s" % l, [to, lo, snolib])
+        langobjs.append(lo)
+
+# Language spec file
+env.JTR("lang_specs.h", "lang_specs.ctmpl", JTR_TOKENS=" ".join(\
+        map(lambda x: x.replace("LANG_",""), lm_langs)))
+env.Depends("lang_specs.h", "lang_specs.ctmpl")
+
+# Lemmatizer
+env.JTR("snowball_lemmatize.ctmpl", JTR_TOKENS=" ".join(stem_langs))
+env.Depends("snowball_lemmatize.c", "snowball_lemmatize.ctmpl")
+        
+env.Append(CPPPATH=['#/preproc','snowball_objs'])
+
+env.Program('lemmatizer', ['lemmatizer.c', '#/preproc/stats_lib.o',
+                           'snowball_lemmatize.c', snolib] + langobjs,
+                           LIBS = ['aino', 'Judy'])
+
+
+#tc = SConscript(['textcat/SConstruct'])
+
+# Lang_conf.cfg
+env.JTR("lang_conf.ctmpl", JTR_TOKENS=" ".join(lm_langs))
+env.Depends("lang_conf.c", "lang_conf.ctmpl")
+lc = env.Object("lang_conf.cfg", "lang_conf.c", CCFLAGS="-E")
+
+## Lang_detect
+#env.Depends('lang_detect', lc)
+#env.Depends('lang_detect', tc)
+#env.Append(CPPPATH=['textcat'])
+#env.Append(LIBPATH=['textcat'])
+#env.Program('lang_detect', ['lang_detect.c', '#/preproc/rawstream.o'],
+#                LIBS=['Judy', 'aino', 'textcat'])
+
+# Lang_recg
+lm = env.Object("langrecg.models", "langrecg.models.c", CCFLAGS="-E -P")
+env.Program('langrecg', ['langrecg.c', '#/preproc/rawstream.o'], LIBS=['Judy', 'aino'])

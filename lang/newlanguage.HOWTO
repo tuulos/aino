@@ -1,0 +1,14 @@
+
+How to add support for a new language, including stemming and language detection?
+
+1. Reserve a new language symbol and code in ixemes.h (e.g. LANG_SW 599)
+2. Add Snowball stemming source to stems/LANG_SW.sbl.
+3. Add TextCat language model to lm/lm_LANG_SW.lm.
+4. Do scons at the root level
+
+5. (optional) Try "./test_LANG_SW fubar" to see that stemming works ok.
+
+That's it.
+
+Note that the file names must follow strictly the above naming convention.
+

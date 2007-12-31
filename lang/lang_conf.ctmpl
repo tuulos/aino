@@ -1,0 +1,18 @@
+
+
+TEMPLATE FILE FOR JACK-THE-REPEATER
+
+This file will be processed to lang_conf.cfg which specifies
+language models for lang_detect.
+
+<CODE>
+#include <ixemes.h>
+<REPEAT>
+#ifndef XID_TOKEN
+#error Language TOKEN not specified in ixemes.h. Bad things will happen.
+#else
+lm/lm_TOKEN.lm			XID_TOKEN
+#endif
+</REPEAT>
+</CODE>
+

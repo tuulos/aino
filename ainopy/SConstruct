@@ -1,0 +1,19 @@
+
+Import('g_env')
+
+env = g_env.Copy()
+env.Append(LIBS=['aino'], CPPPATH=['#/index/', '/usr/include/python2.4'],
+           SHLIBPREFIX="a")
+
+dexvm = env.SharedObject('#/index/dexvm.c')
+
+
+lenv = env.Copy()
+lenv.Append(LIBS=['score', 'Judy', 'aino'])
+
+lenv.SharedLibrary(target = 'ainopy', 
+        source = ['ainopy.c', dexvm])
+
+lenv.SharedLibrary(target = 'ainodex',\
+        source = ['ainodex.c', dexvm])
+

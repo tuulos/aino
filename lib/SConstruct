@@ -1,0 +1,27 @@
+import glob, imp
+
+Import('g_env')
+env = g_env.Copy()
+
+# Initialization..
+ixrange = imp.load_source("ixrange", "../utils/ixranges.py")
+bld = Builder(action = ixrange.scons_action,
+              suffix = '.h', src_suffix = '.htmpl')
+env.Append(BUILDERS = {'IXRANGE' : bld})
+
+env.IXRANGE("ixemes.h", "ixranges.htmpl")
+
+# Everything goes to the library except the files
+# having '_test' postfix. They will be compiled to 
+# stand-alone programs.
+
+lib_files = []
+
+for src in glob.glob('*.c'):
+        if '_test' in src:
+                env.Program(src, LIBS=['aino','Judy'])
+        else:
+                lib_files.append(src)
+
+
+env.StaticLibrary('aino', lib_files)

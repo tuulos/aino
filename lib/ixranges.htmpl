@@ -1,0 +1,66 @@
+
+<!--
+This file speficies how the ixeme ID space should be partitioned.
+It is transformed to ixemes.h by ixranges.py.
+-->
+
+<IXEMES>
+<NULL/>
+
+<TOKEN N='1E8'>
+        <TOKEN_FREQUENT N='2000'>
+        </TOKEN_FREQUENT>
+</TOKEN>
+
+<META>
+        <META_LEMMA N='1E8'>
+                <META_FREQUENT N='2000'>
+                </META_FREQUENT>
+        </META_LEMMA>
+
+        <META_QOP>
+                <QOP_UKN/> 
+                <QOP_NOT/>
+                <QOP_AND/>
+                <QOP_SEQ/>
+                <QOP_PHA/>
+                <QOP_RGE/>
+                <QOP_ALL/>
+        </META_QOP>
+
+        <META_LANG>
+                <LANG_EN/>
+                <LANG_FI/>
+                <LANG_SE/>
+                <LANG_PT/>
+                <LANG_ES/>
+                <LANG_FR/>
+                <LANG_DE/>
+        </META_LANG>
+
+        <META_SITE N='1E7'>
+        </META_SITE>
+        
+        <META_LIST N='1E5'>
+        </META_LIST>
+        
+        <META_THREAD N='1E7'>
+        </META_THREAD>
+        
+        <META_AUTHOR N='1E7'>
+        </META_AUTHOR>
+
+        <META_DATE N='1E6'>
+        </META_DATE>
+
+        <META_PATCLASS1 N="1E4">
+        </META_PATCLASS1>
+        
+        <META_PATCLASS2 N="1E4">
+        </META_PATCLASS2>
+        
+        <META_PATCLASS3 N="1E4">
+        </META_PATCLASS3>
+</META>
+
+</IXEMES>
