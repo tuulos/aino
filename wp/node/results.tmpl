@@ -1,0 +1,148 @@
+$def with (num_results, query, cues, keys, results, offset)
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+ "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<title>Aino(C3) - Wikipedia</title>
+<style>
+<!--
+    body{
+        background: #ffffff;
+        font-family: sans-serif;
+        margin-left: 30px;
+    }
+
+    a{
+        text-decoration: none;
+        color: #B19EC2;
+    }
+    
+    a:hover{
+        text-decoration: underline;
+    }
+        
+    .head{
+        width: 95%;
+        height: 70px;
+        border-bottom: solid 1px #666666;
+        margin-bottom: 30px;
+    }
+    
+    .text{
+        position: absolute;
+        top: 30px;
+        left: 28px;
+        width: 159px;
+        height: 69px;
+        background-image: url(/aino_text.png);
+    }
+
+    .hits{
+        position: absolute;
+        
+    }
+    
+    .f{
+        border: solid 1px #999999;
+    }
+    
+    .sugg{
+        color: #57436a;
+    }
+    
+    .barrel{
+        position: absolute;
+        height: 99px;
+        width: 150px;
+        right: 50px;
+        background-image: url(/barrel.gif);
+        z-index: 1;
+    }
+
+    .url{
+        color: #B8743D;
+    }
+
+    .snippet{
+        margin-left: 2em;
+        font-size: 80%;
+        width:  60em;
+    }
+
+    .ttl{
+        margin-left: -2em;
+        color: #3D2F4B;
+    }
+
+    .pageno{
+        color: #3D2F4B;
+        text-decoration: underline;
+    }
+    
+    .links{
+        color: #999999;
+    } 
+
+    .snippet a{
+            font-size: 120%;
+    }
+
+-->
+</style>
+<script>
+<!--
+function foc()
+{
+    document.f.q.focus();
+}
+-->
+</script>
+</head>
+<body onLoad="foc()">
+<div class="head">
+<div class="text">&nbsp;</div>
+<div class="barrel">&nbsp;</div>
+</div>
+<div class="body">
+<form name="f" method="GET" action="q">
+<input size="50" name="q" class="f" value="$query">
+<input type="submit" value="search" class="f">
+</form>
+<b>$num_results</b> results containing words <b>$keys</b> ordered by the theme <b>$cues</b>.<br/><br/>
+
+$for title, snip in results:
+        <p>
+        <div class="snippet">
+        <a class="ttl" href="http://en.wikipedia.org/wiki/$title">$title</a><br/>
+        <div class="sniptxt">$:snip</div>
+        <span class="url">http://en.wikipedia.org/wiki/$title</span><br/>
+        </div>
+        </p>
+
+<br/><br/><br/>
+<p>
+<center>
+
+$ url = "q?q=%s&offs=" % query
+
+$if offset:
+        <a href="$url${offset - 10}">Previous&lt;</a>
+
+$for i in range(max(0, offset - 100), offset, 10):
+        <a href="$url$i">${(i / 10) + 1}</a>
+
+<a class="pageno" href="$url$offset">${(offset / 10) + 1}</a>
+
+$for i in range(offset + 10, min(num_results, offset + 100), 10):
+        <a href="$url$i">${(i / 10) + 1}</a>
+
+$if offset < num_results - 10:
+        <a href="$url${offset + 10}">&gt;Next</a>
+
+<br/><br/>
+</center>
+</p>
+</div>
+</body>
+</html>
