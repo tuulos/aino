@@ -53,21 +53,26 @@ static bmap_t *bmap_init(uint size)
 
         dub_msg("SIXR %u", sze);
         b = xmalloc((sze + 1) * sizeof(long));
-        b->len = sze;
+        b->len = size;
         memset(b->b, 0, sze * sizeof(long));
         return b;
 }
 
+/*
 static inline bmap_t *bmap_clone(const bmap_t *bmap)
 {
         bmap_t *b = xmalloc(sizeof(bmap_t) + bmap->len * sizeof(long));
         memcpy(b, bmap, sizeof(bmap_t) + bmap->len * sizeof(long));
         return b;
 }
+*/
 
 static inline int bmap_test(const bmap_t *bmap, uint idx)
 {
-        return asm_test_bit(idx & MD, &bmap->b[idx >> DV]);
+	if (idx >= bmap->len)
+		return 0;
+	else
+	        return asm_test_bit(idx & MD, &bmap->b[idx >> DV]);
 }
 
 static inline void bmap_set(bmap_t *bmap, uint idx)
