@@ -71,7 +71,16 @@ def merge_scores(msg):
                         offs, layer_id, layer =\
                                 ainodex.deserialize_layer(
                                         layer_data, layers)
-        
+
+	#XXX: Since ixemes are allocated on different layers on each layer,
+	# we must make sure that the ixeme counts match on every layer. This
+	# could be easily avoided if ixemes were on the same layers on all
+	# iblocks.  This should be easy to fix.
+	t = time.time()
+	ainodex.sync_layers(layers)
+	erlay.report("Syncing layers took %dms" %\
+	                   ((time.time() - t) * 1000.0))
+
         print "CUE", type(cueset_size), cueset_size
         for layer in layers:
                 if layer:

@@ -213,6 +213,21 @@ static PyObject *ainodex_findhits(PyObject *self, PyObject *args)
                 PyCObject_FromVoidPtr(hits, destroy_generic));
 }
 
+static PyObject *ainodex_list_to_hits(PyObject *self, PyObject *args)
+{
+	PyObject *lst;
+	if (!PyArg_ParseTuple(args, "O", &lst))
+		return NULL;
+		
+	if (!PySequence_Check(lst)){
+		PyErr_SetString(PyExc_TypeError, "Expected a sequence");
+		return NULL;
+	}
+        
+	glist *hits = sequence_to_glist(lst);
+        return PyCObject_FromVoidPtr(hits, destroy_generic);
+}
+
 static PyObject *ainodex_hit_contents(PyObject *self, PyObject *args)
 {
         PyObject *hits_o;
@@ -445,6 +460,59 @@ static PyObject *ainodex_deserialize_layer(PyObject *self, PyObject *args)
         return ret;
 }
 
+static PyObject *ainodex_sync_layers(PyObject *self, PyObject *args)
+{
+        PyObject *layer_scores_o = NULL;
+
+        if (!PyArg_ParseTuple(args, "O", &layer_scores_o))
+                return NULL;
+        
+	if (!PySequence_Check(layer_scores_o)){
+                PyErr_SetString(PyExc_TypeError, "argument not a sequence");
+		return NULL;
+        }
+
+        int i, len = PySequence_Length(layer_scores_o);
+
+	Pvoid_t all_scores = NULL;
+	Word_t xid = 0;
+	Word_t *ptr1, *ptr2;
+	
+        for (i = 0; i < len; i++){
+                PyObject *o = PySequence_Fast_GET_ITEM(layer_scores_o, i);
+                if (!PyCObject_Check(o)){
+                        continue;
+                }
+                layer_e *layer = PyCObject_AsVoidPtr(o);
+		xid = 0;
+		JLF(ptr1, layer->scores, xid);
+		while (ptr1){
+			JLI(ptr2, all_scores, xid);
+			*ptr2 += *ptr1;
+			JLN(ptr1, layer->scores, xid);
+		}
+        }
+        
+	for (i = 0; i < len; i++){
+                PyObject *o = PySequence_Fast_GET_ITEM(layer_scores_o, i);
+                if (!PyCObject_Check(o)){
+                        continue;
+                }
+                layer_e *layer = PyCObject_AsVoidPtr(o);
+		xid = 0;
+		JLF(ptr1, layer->scores, xid);
+		while (ptr1){
+			JLG(ptr2, all_scores, xid);
+			*ptr1 = *ptr2;
+			JLN(ptr1, layer->scores, xid);
+		}
+        }
+
+	JLFA(i, all_scores);
+        Py_INCREF(Py_None);
+        return Py_None;
+}
+
 static PyObject *ainodex_layer_contents(PyObject *self, PyObject *args)
 {
         PyObject *scores_o = NULL;
@@ -613,7 +681,7 @@ static PyObject *ainodex_normalize_layer(PyObject *self, PyObject *args)
                 /* sco may be > 1.0 if the normalization vector and
                  * layer frequencies are not in sync */
                 if (sco > 1.0){
-                        dub_warn("Score > 1.0! Set to 1.0.");
+                        dub_warn("Score %f > 1.0! Set to 1.0.", sco);
                         sco = 1.0;
                 }
                 memcpy(ptr, &sco, sizeof(float));
@@ -736,6 +804,8 @@ static PyMethodDef ainodex_methods[] = {
                 "Find documents matching the given ixemes"},
         {"hit_contents", ainodex_hit_contents, METH_VARARGS,
                 "Converts a hit object to list"},
+        {"list_to_hits", ainodex_list_to_hits, METH_VARARGS,
+                "Converts a list to hit object"},
         {"expand_cueset", ainodex_expand_cueset, METH_VARARGS,
                 "Makes a cueset given a list of cue ixemes"},
         {"new_layer", ainodex_new_layer, METH_VARARGS,
@@ -744,6 +814,8 @@ static PyMethodDef ainodex_methods[] = {
                 "Writes a layer object to string"},
         {"deserialize_layer", ainodex_deserialize_layer, METH_VARARGS,
                 "Reads a layer object from string"},
+        {"sync_layers", ainodex_sync_layers, METH_VARARGS,
+                "Make sure that ixeme counts match on all layers"},
         {"layer_contents", ainodex_layer_contents, METH_VARARGS,
                 "Returns the layer contents"},
         {"score_list", ainodex_list_score, METH_VARARGS,
