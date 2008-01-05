@@ -1,5 +1,5 @@
 
-import sys, time, cStringIO
+import sys, time, cStringIO, array
 import ainodex
 import make_query
 import erlay
@@ -8,11 +8,23 @@ from netstring import *
 
 normtables = {}
 normtable = None
+last_normtable_update = 0
+normtables_need_update = False
 
 MIN_SCORE = 0.001
+NORMTABLE_UPDATE = 30.0
+
+def update_normtable():
+        global normtable, last_normtable_update, normtables_need_update
+	normtables_need_update = False
+	erlay.report("Updating normtable")
+        normtable = ainodex.normtable_to_judy(
+			"".join(normtables.itervalues()))
+	last_normtable_update = time.time()
 
 def add_normtable(msg):
-        global normtable
+        global normtables_need_update
+	c = time.time()
         msg = cStringIO.StringIO(msg)
         while True:
                 try:
@@ -21,9 +33,12 @@ def add_normtable(msg):
                         break
                 normtables[iblock_normtable['iblock']] =\
                         iblock_normtable['normtable']
+	
+	erlay.report("This took %dms" % ((time.time() - c) * 1000.0))
+	normtables_need_update = True
 
-        normtable = ainodex.normtable_to_judy(
-                "".join(normtables.itervalues()))
+	if time.time() - last_normtable_update > NORMTABLE_UPDATE:
+		update_normtable()
 
         erlay.report("Got normtables from iblocks <%s>" %
                 " ".join(normtables.keys()))
@@ -31,10 +46,14 @@ def add_normtable(msg):
 
 
 def parse_query(msg):
+	if normtables_need_update and\
+		time.time() - last_normtable_update > NORMTABLE_UPDATE:
+		update_normtable()
+
         query = None
         try:
                 query = make_query.parse_qs(msg)
-                keys, cues = make_query.make_query(query['q'])
+                keys, cues = make_query.make_query(query['q'].decode("iso-8859-1"))
                 keys = " ".join(map(str, keys))
                 cues = " ".join(map(str, cues))
         except Exception, x:
@@ -95,6 +114,8 @@ def merge_ranked(msg):
                 except EOFError:
                         break
         top = ainodex.merge_ranked(r.getvalue())
+	erlay.report("Top keys: %s" % array.array("I", top)[:20:2])
+
         return encode_netstring_fd({'merged': top, 'num_hits': str(num_hits)})
 
 
