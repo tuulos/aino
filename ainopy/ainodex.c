@@ -350,7 +350,7 @@ static PyObject *ainodex_serialize_layer(PyObject *self, PyObject *args)
         u32 offs;
 
         JLC(no, layer->scores, 0, -1);
-        if (no > buf_len){
+        if (no >= buf_len){
                 buf_len = no;
                 free(buf);
                 buf = xmalloc(no * 16 + 16);
