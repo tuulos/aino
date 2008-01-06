@@ -1,5 +1,5 @@
 
-import sys, time, cStringIO, array
+import sys, time, cStringIO, array, os
 import ainodex
 import make_query
 import erlay
@@ -53,22 +53,24 @@ def parse_query(msg):
         query = None
         try:
                 query = make_query.parse_qs(msg)
-                keys, cues = make_query.make_query(query['q'].decode("iso-8859-1"))
+                keys, cues, mods = make_query.make_query(query['q'])
                 keys = " ".join(map(str, keys))
                 cues = " ".join(map(str, cues))
-        except Exception, x:
+        	mods = " ".join(mods)
+	except Exception, x:
                 erlay.report("Query parsing failed: %s" % x)
                 if query:
                         erlay.report("Failed query: %s" % query)
-                keys = []
-                cues = []
+                keys = ""
+                cues = ""
+		mods = ""
                 query = ""
 
         erlay.report("Query string: <%s> Keys: <%s> Cues: <%s>" %\
                 (query, keys, cues))
         
         return encode_netstring_fd({'keys': keys, 'cues': cues, 
-                        'query': msg})
+			'mods': mods, 'query': msg})
 
 
 def merge_scores(msg):
@@ -85,7 +87,7 @@ def merge_scores(msg):
 
                 cueset_size += int(iblock_layers['cueset_size'])
                 del iblock_layers['cueset_size']
-
+		
                 for layer_data in iblock_layers.itervalues():
                         offs, layer_id, layer =\
                                 ainodex.deserialize_layer(
@@ -131,8 +133,12 @@ def merge_ranked(msg):
 erlay.report("--- merger starts ---")
 
 ainodex.open()
-erlay.register_str(sys.argv[1], 'dex/merger')
 
-erlay.serve_forever(globals()) 
+if "TESTDEX" in os.environ:
+        globals()[sys.argv[1]](file(sys.argv[2]).read())
+else:
+	erlay.register_str(sys.argv[1], 'dex/merger')
+	erlay.serve_forever(globals()) 
+
 
 

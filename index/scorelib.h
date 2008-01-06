@@ -58,6 +58,8 @@ Pvoid_t expand_cueset(const glist *cues);
 
 glist *find_hits(const glist *keys, uint did_mode);
 
+Pvoid_t combine_layers(const Pvoid_t *layer_scores);
+
 struct scored_doc *rank_dyn(const glist *hits, const Pvoid_t *layer_scores);
 struct scored_doc *rank_brute(const glist *hits, const Pvoid_t *layer_scores);
 

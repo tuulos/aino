@@ -31,7 +31,9 @@ ext_init("merger", Socket) ->
 ext_init(Iblock, Socket) ->
         error_logger:info_report(["new iblock", Socket]),
         init_iblock_registry(),
+        error_logger:info_report(["req normtable"]),
         {ok, Normtable} = erlay:communicate(Socket, "get_normtable:"),
+        error_logger:info_report(["ok, got normtable"]),
         ets:insert(iblock_registry, {Iblock, Normtable}),
         (catch gen_server:call(erlay,
                 {ext_sync, "merger", ["add_normtable:", Normtable]}, 

@@ -1,10 +1,10 @@
-$def with (num_results, query, cues, keys, results, offset)
+$def with (num_results, query, base_q, cues, keys, results, offset)
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
  "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
-<title>Aino(C3) - Wikipedia</title>
+<title>Aino</title>
 <style>
 <!--
     body{
@@ -70,6 +70,11 @@ $def with (num_results, query, cues, keys, results, offset)
         width:  60em;
     }
 
+    .moreresults{
+	margin-left: 2em;
+	font-size: 80%;
+    }
+
     .ttl{
         margin-left: -2em;
         color: #3D2F4B;
@@ -111,14 +116,19 @@ function foc()
 </form>
 <b>$num_results</b> results containing words <b>$keys</b> ordered by the theme <b>$cues</b>.<br/><br/>
 
-$for title, snip in results:
-        <p>
-        <div class="snippet">
-        <a class="ttl" href="http://en.wikipedia.org/wiki/$title">$title</a><br/>
-        <div class="sniptxt">$:snip</div>
-        <span class="url">http://en.wikipedia.org/wiki/$title</span><br/>
-        </div>
-        </p>
+$for title, url, site, snip in results:
+    <p>
+    <div class="snippet">
+    <a class="ttl" href="$url">$title</a><br/>
+    <div class="sniptxt">$:snip</div>
+    $if len(url) > 50:
+        <span class="url">$cut(url)...</span><br/>
+    $else:
+        <span class="url">$url</span><br/>
+    </div>
+    $if base_q:
+        <a class="moreresults" href="/aino/q?q=$base_q site:$site">[More results from $site]</a>
+    </p>
 
 <br/><br/><br/>
 <p>
