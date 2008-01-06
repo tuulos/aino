@@ -2,8 +2,8 @@
 
 while ((1))
 do
-	echo "$1 restarts at `date`" >> $1.log
-	ssh $1 $2 >> $1-$3.log 2>> $1-$3.err.log
+	echo "$1 restarts at `date`" >> logs/$1-$3.log
+	ssh $1 $2 >> logs/$1-$3.log 2>> logs/$1-$3.err.log
 	sleep 10
 done
 

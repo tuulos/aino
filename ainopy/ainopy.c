@@ -203,6 +203,21 @@ static PyObject *segments_in_doc(u32 did)
         return list;
 }
 
+static PyObject *ainopy_did2info(PyObject *self, PyObject *args)
+{
+        u32 did;
+
+	if (!PyArg_ParseTuple(args, "I", &did))
+                return NULL;
+        
+        if (check_did(did))
+                return NULL;
+
+	const doc_e *nfo = info_find(did);
+
+        return Py_BuildValue("if", nfo->key, nfo->prior);
+}
+
 static PyObject *ainopy_sid2doc(PyObject *self, PyObject *args)
 {
         u32 sid;
@@ -220,6 +235,20 @@ static PyObject *ainopy_sid2doc(PyObject *self, PyObject *args)
         PyObject *ret = Py_BuildValue("(iO)", did, list);
         Py_DECREF(list);
         return ret;
+}
+
+static PyObject *ainopy_sid2did(PyObject *self, PyObject *args)
+{
+        u32 sid;
+        u32 did;
+
+        if (!PyArg_ParseTuple(args, "I", &sid))
+                return NULL;
+
+        if (check_sid(sid))
+                return NULL;
+
+        return Py_BuildValue("i", SID2DID(sid));
 }
 
 static PyObject *ainopy_did2doc(PyObject *self, PyObject *args)
@@ -305,6 +334,12 @@ static PyMethodDef ainopy_methods[] = {
         
         {"did2key", ainopy_did2key, METH_VARARGS,
                 "Returns the key corresponding to the given document ID"},
+	
+	{"sid2did", ainopy_sid2did, METH_VARARGS,
+                "Segment ID to document ID"},
+        
+	{"docinfo", ainopy_did2info, METH_VARARGS,
+                "Returns document information"},
 
         {"info", ainopy_info, METH_NOARGS,
                 "Index information"},

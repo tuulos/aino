@@ -55,7 +55,7 @@ class AinoCmd(cmd.Cmd):
                         print\
 """
 Available commands:
-open, inva, xids, fw, pos, sid2doc, did2doc, did2key, info, stats, quit
+open, inva, xids, docinfo, fw, pos, sid2doc, did2doc, did2key, info, stats, quit
 
 Type help [command] to get more information
 """
