@@ -54,7 +54,7 @@ def parse_qs(qs, strict_parsing = True, keep_blank_values = False):
 
 
 def find_id(token):
-        xids = [ainodex.token2ixeme(w) for w in re.split('\W+', token) if w]
+        xids = [ainodex.token2ixeme(w) for w in re.split('(?u)\W+', token) if w]
         return filter(lambda x: x, xids)
 
 def add_cue(token):
@@ -92,7 +92,8 @@ def add_keyword(token):
         return False
 
 def add_modifier(token):
-        return True
+        modifiers.append(token)
+	return True
 
 def flatten(lst):
         r = []
@@ -129,7 +130,6 @@ def make_query(q):
                                 phrase_target = keys
                         elif token.find(':') != -1:
                                 mode = add_modifier
-                                token = token[1:]
                 if mode(token):
                         mode = add_keyword
                         if phrase_target != None:
@@ -142,7 +142,7 @@ def make_query(q):
                 phrase_target.append(tuple(active_phrase))
 
         # canonize query order
-        keys += modifiers
+        #keys += modifiers
         keys.sort(reverse = True)
         cues.sort(reverse = True)
        
@@ -151,6 +151,6 @@ def make_query(q):
         #        for phrase in phrases:
         #                cues += phrase[1:-1]
 
-        return flatten(keys), flatten(cues)
+        return flatten(keys), flatten(cues), flatten(modifiers)
         
 

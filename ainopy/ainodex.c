@@ -95,6 +95,33 @@ glist *sequence_to_glist(PyObject *lst)
         return g;
 }
 
+const Pvoid_t *unwrap_layer_list(PyObject *layer_scores_o, int normalized)
+{
+        static Pvoid_t layer_scores[NUM_FW_LAYERS];
+        memset(layer_scores, 0, NUM_FW_LAYERS * sizeof(void*));
+        int i, len = PySequence_Length(layer_scores_o);
+
+        for (i = 0; i < len; i++){
+                PyObject *o = PySequence_Fast_GET_ITEM(layer_scores_o, i);
+                if (!PyCObject_Check(o))
+                        continue;
+                
+		layer_e *layer = PyCObject_AsVoidPtr(o);
+                if (layer_scores[layer->layer]){
+                        PyErr_SetString(PyExc_RuntimeError, 
+                                "Duplicate layers");
+			return NULL;
+                }
+                if (layer->normalized < normalized){
+                        PyErr_SetString(PyExc_RuntimeError,
+                                "Layer not normalized");
+                        return NULL;
+                }
+                layer_scores[layer->layer] = layer->scores;
+        }
+	return layer_scores;
+}	
+
 static PyObject *ainodex_open(PyObject *self, PyObject *args)
 {
         uint do_qexp;
@@ -115,9 +142,40 @@ static PyObject *ainodex_open(PyObject *self, PyObject *args)
         return Py_None;
 }
 
+static PyObject *ainodex_ixicon_entry(PyObject *self, PyObject *args)
+{
+	PyObject *rixicon_o = NULL;
+	u32 xid = 0;
+
+        if (!PyArg_ParseTuple(args, "OI", &rixicon_o, &xid))
+                return NULL;
+
+        if (!PyCObject_Check(rixicon_o)){
+                PyErr_SetString(PyExc_TypeError, "Argument not a reverse ixicon");
+                return NULL;
+        }
+        
+	const Pvoid_t rixi = PyCObject_AsVoidPtr(rixicon_o); 
+	Word_t *ptr;
+	JLG(ptr, rixi, xid);
+	if (ptr)
+        	return Py_BuildValue("s", (char*)*ptr);
+	else
+        	Py_INCREF(Py_None);
+	        return Py_None;
+}
+
 static PyObject *ainodex_ixicon(PyObject *self, PyObject *args)
 {
+	int make_dict = 1;
+
+        if (!PyArg_ParseTuple(args, "|i", &make_dict))
+                return NULL;
+
         Pvoid_t ixi = reverse_ixicon();
+        if (!make_dict)
+		return PyCObject_FromVoidPtr(ixi, destroy_judyL);
+
         Word_t xid = 0;
         Word_t *ptr;
 
@@ -460,6 +518,32 @@ static PyObject *ainodex_deserialize_layer(PyObject *self, PyObject *args)
         return ret;
 }
 
+static PyObject *ainodex_top_ixemes(PyObject *self, PyObject *args)
+{
+        PyObject *layer_scores_o = NULL;
+	int num = 10;
+
+        if (!PyArg_ParseTuple(args, "O|i", &layer_scores_o, &num))
+                return NULL;
+
+	const Pvoid_t *layer_scores = unwrap_layer_list(layer_scores_o, 0);
+	if (!layer_scores)
+		return NULL;
+	Pvoid_t all_scores = combine_layers(layer_scores);
+	struct scored_ix *sorted = sort_scores(all_scores);	
+
+        PyObject *lst = PyList_New(num);
+	int i;
+	for (i = 0; i < num; i++)
+                PyList_SET_ITEM(lst, i, Py_BuildValue("If",
+			sorted[i].xid, sorted[i].score));
+
+	JLFA(i, all_scores);
+	free(sorted);
+	return lst;
+}
+
+
 static PyObject *ainodex_sync_layers(PyObject *self, PyObject *args)
 {
         PyObject *layer_scores_o = NULL;
@@ -471,40 +555,23 @@ static PyObject *ainodex_sync_layers(PyObject *self, PyObject *args)
                 PyErr_SetString(PyExc_TypeError, "argument not a sequence");
 		return NULL;
         }
-
+        
         int i, len = PySequence_Length(layer_scores_o);
-
-	Pvoid_t all_scores = NULL;
+	const Pvoid_t *layer_scores = unwrap_layer_list(layer_scores_o, 0);
+	if (!layer_scores)
+		return NULL;
+	Pvoid_t all_scores = combine_layers(layer_scores);
+	
 	Word_t xid = 0;
 	Word_t *ptr1, *ptr2;
-	
-        for (i = 0; i < len; i++){
-                PyObject *o = PySequence_Fast_GET_ITEM(layer_scores_o, i);
-                if (!PyCObject_Check(o)){
-                        continue;
-                }
-                layer_e *layer = PyCObject_AsVoidPtr(o);
-		xid = 0;
-		JLF(ptr1, layer->scores, xid);
-		while (ptr1){
-			JLI(ptr2, all_scores, xid);
-			*ptr2 += *ptr1;
-			JLN(ptr1, layer->scores, xid);
-		}
-        }
-        
+
 	for (i = 0; i < len; i++){
-                PyObject *o = PySequence_Fast_GET_ITEM(layer_scores_o, i);
-                if (!PyCObject_Check(o)){
-                        continue;
-                }
-                layer_e *layer = PyCObject_AsVoidPtr(o);
 		xid = 0;
-		JLF(ptr1, layer->scores, xid);
+		JLF(ptr1, layer_scores[i], xid);
 		while (ptr1){
 			JLG(ptr2, all_scores, xid);
 			*ptr1 = *ptr2;
-			JLN(ptr1, layer->scores, xid);
+			JLN(ptr1, layer_scores[i], xid);
 		}
         }
 
@@ -701,8 +768,6 @@ static PyObject *ainodex_rank(PyObject *self, PyObject *args)
         struct scored_doc *ranked;
         PyObject *ret = NULL;
 
-        Pvoid_t *layer_scores = xmalloc(NUM_FW_LAYERS * sizeof(void*));
-        memset(layer_scores, 0, NUM_FW_LAYERS * sizeof(void*));
 
         if (!PyArg_ParseTuple(args, "OO|ii", &hits_o, &layer_scores_o, 
                         &results_as_list, &brute_cutoff))
@@ -710,47 +775,24 @@ static PyObject *ainodex_rank(PyObject *self, PyObject *args)
        
         if (!PyCObject_Check(hits_o)){
                 PyErr_SetString(PyExc_TypeError, "Item not a hits object");
-                        goto end;
+		return NULL;
         }
 
         if (!PySequence_Check(layer_scores_o)){
                 PyErr_SetString(PyExc_TypeError, "2 argument not a sequence");
-                goto end;
+		return NULL;
         }
-
         const glist *hits = PyCObject_AsVoidPtr(hits_o); 
-        int i, len = PySequence_Length(layer_scores_o);
+        const Pvoid_t *layer_scores = unwrap_layer_list(layer_scores_o, 1);
+	if (!layer_scores)
+		return NULL;
 
-        for (i = 0; i < len; i++){
-                PyObject *o = PySequence_Fast_GET_ITEM(layer_scores_o, i);
-                if (!PyCObject_Check(o)){
-                        continue;
-                        /*
-                        PyErr_SetString(PyExc_TypeError, 
-                                "Item not a score object");
-                        goto end;
-                        */
-                }
-                layer_e *layer = PyCObject_AsVoidPtr(o);
-                if (layer_scores[layer->layer]){
-                        PyErr_SetString(PyExc_RuntimeError, 
-                                "Duplicate layers");
-                        goto end;
-                }
-                if (!layer->normalized){
-                        PyErr_SetString(PyExc_RuntimeError,
-                                "Layer not normalized");
-                        goto end;
-                }
-                layer_scores[layer->layer] = layer->scores;
-        }
-        
         if (hits->len < brute_cutoff)
                 ranked = rank_brute(hits, layer_scores);
         else
                 ranked = rank_dyn(hits, layer_scores);
 
-        len = 0;
+        int i, len = 0;
         while (ranked[len].did || ranked[len].score){
                 ranked[len].did = DID2KEY(ranked[len].did);
                 ++len;
@@ -767,8 +809,6 @@ static PyObject *ainodex_rank(PyObject *self, PyObject *args)
                 ret = PyString_FromStringAndSize((const char*)ranked, 
                         len * sizeof(struct scored_doc));
         free(ranked);
-end:
-        free(layer_scores);
         return ret;
 }
 
@@ -794,8 +834,10 @@ static PyObject *ainodex_merge_ranked(PyObject *self, PyObject *args)
 static PyMethodDef ainodex_methods[] = {
         {"open", ainodex_open, METH_VARARGS,
                 "Opens index specified by env.vars NAME and IBLOCK"},
-        {"ixicon", ainodex_ixicon, METH_NOARGS,
+        {"ixicon", ainodex_ixicon, METH_VARARGS,
                 "Return a mapping from ixeme IDs to tokens"},
+        {"ixicon_entry", ainodex_ixicon_entry, METH_VARARGS,
+                "Return an entry from reverse ixicon"},
         {"token2ixeme", ainodex_token2ixeme, METH_VARARGS,
                 "Return ixeme ID of the given token"},
         {"ixeme2token", scorepy_ixeme2token, METH_VARARGS,
@@ -814,6 +856,8 @@ static PyMethodDef ainodex_methods[] = {
                 "Writes a layer object to string"},
         {"deserialize_layer", ainodex_deserialize_layer, METH_VARARGS,
                 "Reads a layer object from string"},
+        {"top_ixemes", ainodex_top_ixemes, METH_VARARGS,
+                "Return the highest scoring ixemes from the layers"},
         {"sync_layers", ainodex_sync_layers, METH_VARARGS,
                 "Make sure that ixeme counts match on all layers"},
         {"layer_contents", ainodex_layer_contents, METH_VARARGS,
