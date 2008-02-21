@@ -193,11 +193,11 @@ static PyObject *segments_in_doc(u32 did)
         u32 sid;
 
         for (sid = DID2SID(did); sid < DEX_NOF_SEG; sid++){
+                if (SID2DID(sid) != did)
+                        break;
                 PyObject *o = Py_BuildValue("i", sid);
                 PyList_Append(list, o);
                 Py_DECREF(o);
-                if (SID2DID(sid) != did)
-                        break;
         }
 
         return list;
