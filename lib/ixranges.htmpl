@@ -13,11 +13,6 @@ It is transformed to ixemes.h by ixranges.py.
 </TOKEN>
 
 <META>
-        <META_LEMMA N='1E8'>
-                <META_FREQUENT N='2000'>
-                </META_FREQUENT>
-        </META_LEMMA>
-
         <META_QOP>
                 <QOP_UKN/> 
                 <QOP_NOT/>
@@ -38,29 +33,13 @@ It is transformed to ixemes.h by ixranges.py.
                 <LANG_DE/>
         </META_LANG>
 
-        <META_SITE N='1E7'>
-        </META_SITE>
+        <META_RANK N='1E8'>
+                <META_FREQUENT N='2000'>
+                </META_FREQUENT>
+        </META_RANK>
         
-        <META_LIST N='1E5'>
-        </META_LIST>
-        
-        <META_THREAD N='1E7'>
-        </META_THREAD>
-        
-        <META_AUTHOR N='1E7'>
-        </META_AUTHOR>
-
-        <META_DATE N='1E6'>
-        </META_DATE>
-
-        <META_PATCLASS1 N="1E4">
-        </META_PATCLASS1>
-        
-        <META_PATCLASS2 N="1E4">
-        </META_PATCLASS2>
-        
-        <META_PATCLASS3 N="1E4">
-        </META_PATCLASS3>
+        <META_NORANK N='1E8'>
+        </META_NORANK>
 </META>
 
 </IXEMES>
