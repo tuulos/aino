@@ -36,6 +36,8 @@ It is transformed to ixemes.h by ixranges.py.
         <META_RANK N='1E8'>
                 <META_FREQUENT N='2000'>
                 </META_FREQUENT>
+                <META_LEMMA N='1E7'>
+                </META_LEMMA>
         </META_RANK>
         
         <META_NORANK N='1E8'>
