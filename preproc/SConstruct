@@ -51,6 +51,9 @@ env.Program('collect_stats', ['collect_stats.c', 'stats_lib.c', seri])
 # Freq_ixicon
 env.Program('freq_ixicon', ['freq_ixicon.c', 'stats_lib.c'])
 
+# Create_ixicon
+env.Program('create_ixicon', ['create_ixicon.c'])
+
 # Qexp_tagger
 #env.Program('qexp_tagger', ['qexp_tagger.c', seri])
 
