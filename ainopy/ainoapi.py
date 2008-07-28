@@ -39,6 +39,6 @@ def id2token(id):
                 rev_ixi = ainodex.ixicon(0)
         return ainodex.ixicon_entry(rev_ixi, id)
 
-def token_frequency(t):
+def frequency(t):
         return ainopy.freq(_to_xid(t))
 
