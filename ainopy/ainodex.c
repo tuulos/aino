@@ -122,14 +122,24 @@ const Pvoid_t *unwrap_layer_list(PyObject *layer_scores_o, int normalized)
 	return layer_scores;
 }	
 
-static PyObject *ainodex_open(PyObject *self, PyObject *args)
+static PyObject *ainodex_open_ixicon(PyObject *self, PyObject *args)
 {
-        uint do_qexp;
-
-        dub_init();
-        open_index();
         const char *fname = pparm_common_name("ixi");
         load_ixicon(fname);
+        Py_INCREF(Py_None);
+        return Py_None;
+}
+
+static PyObject *ainodex_open(PyObject *self, PyObject *args)
+{
+        uint do_qexp, open_ixi = 1;
+        
+        PyArg_ParseTuple(args, "|i", &open_ixi);
+        if (open_ixi){
+                const char *fname = pparm_common_name("ixi");
+                load_ixicon(fname);
+        }
+        open_index();
 
         PPARM_INT(do_qexp, QEXP);
         if (do_qexp){
@@ -834,6 +844,8 @@ static PyObject *ainodex_merge_ranked(PyObject *self, PyObject *args)
 static PyMethodDef ainodex_methods[] = {
         {"open", ainodex_open, METH_VARARGS,
                 "Opens index specified by env.vars NAME and IBLOCK"},
+        {"open_ixicon", ainodex_open_ixicon, METH_NOARGS,
+                "Open ixicon"},
         {"ixicon", ainodex_ixicon, METH_VARARGS,
                 "Return a mapping from ixeme IDs to tokens"},
         {"ixicon_entry", ainodex_ixicon_entry, METH_VARARGS,
@@ -880,4 +892,5 @@ static PyMethodDef ainodex_methods[] = {
 PyMODINIT_FUNC initainodex()
 {
         Py_InitModule("ainodex", ainodex_methods);
+        dub_init();
 }
