@@ -429,7 +429,7 @@ static PyObject *ainodex_serialize_layer(PyObject *self, PyObject *args)
         
         elias_gamma_write(buf, &offs, layer->layer + 1);
         elias_gamma_write(buf, &offs, layer->normalized + 1);
-        elias_gamma_write(buf, &offs, no);
+        elias_gamma_write(buf, &offs, no + 1);
 
         JLF(ptr, layer->scores, xid);
         while (ptr){
@@ -505,8 +505,7 @@ static PyObject *ainodex_deserialize_layer(PyObject *self, PyObject *args)
                 layer->scores = NULL;
                 layer->layer = layer_id;
         }
-        
-        u32 no = elias_gamma_read(buf, &offs);
+        u32 no = elias_gamma_read(buf, &offs) - 1;
         while (no--){
                 xid += elias_gamma_read(buf, &offs);
                 JLI(ptr, layer->scores, xid);
