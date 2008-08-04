@@ -27,6 +27,7 @@
 #include <qexpansion.h>
 #include <pparam.h>
 #include <bbitmap.h>
+#include <ixemes.h>
 
 #include <Judy.h>
 #include <string.h>
@@ -102,6 +103,9 @@ static float seg_score(u32 sid, const Pvoid_t *layer_scores,
                 Word_t *sco;
 
                 DEX_FOREACH_VAL(p, &offs, xid)
+                        if (xid >= XID_META_NORANK_F &&
+                            xid <= XID_META_NORANK_L)
+                                continue;
                         JLG(sco, ixscores, xid);
                         if (sco)
                                 score += *(float*)sco;
@@ -171,6 +175,9 @@ static Pvoid_t sweep_high_layers(const glist *hits,
                         u32 xid;
                         DEX_FOREACH_VAL(p, &offs, xid)
                                 if (xid < table->key_offs)
+                                        continue;
+                                if (xid >= XID_META_NORANK_F &&
+                                    xid <= XID_META_NORANK_L)
                                         continue;
                                 if (xid <= table->max_key)
                                         score += table->scores[
@@ -487,6 +494,9 @@ struct scored_doc *rank_brute(const glist *hits, const Pvoid_t *layer_scores)
                         u32 xid;
                         
                         DEX_FOREACH_VAL(p, &offs, xid)
+                                if (xid >= XID_META_NORANK_F &&
+                                    xid <= XID_META_NORANK_L)
+                                        continue;
                                 Word_t *sco;
                                 JLG(sco, ixscores, xid);
                                 if (sco)
