@@ -8,15 +8,21 @@
 
 #include <dub.h>
 #include <ixicon.h>
+#include <ixemes.h>
+#include <pparam.h>
+
+#define REMOVE_PREFIX 0
 
 int main(int argc, char **argv)
 {
         Pvoid_t ixicon = NULL;
         char *tok = NULL;
-        unsigned int xid;
+        unsigned int xid, remove_prefix = 0;
         FILE *f;
         
         dub_init();
+
+        PPARM_INT(remove_prefix, REMOVE_PREFIX);
 
         if (argc < 3)
                 dub_die("Usage: create_ixicon <netstring_ixicon> <new_ixicon>");
@@ -29,7 +35,12 @@ int main(int argc, char **argv)
 
         while(fscanf(f, "%*d %as %*d %d", &tok, &xid) == 2){
                 Word_t *ptr;
-                JSLI(ptr, ixicon, tok);
+                if (remove_prefix && xid >= XID_META_F &&
+                    xid <= XID_META_L && tok[1] == ':'){
+                        JSLI(ptr, ixicon, &tok[2]);
+                }else{
+                        JSLI(ptr, ixicon, tok);
+                }
                 *ptr = xid;
                 free(tok);
         }
