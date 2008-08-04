@@ -23,6 +23,7 @@
 #include <Judy.h>
 
 #include <qexpansion.h>
+#include <ixemes.h>
 #include <ixicon.h>
 #include <pparam.h>
 #include <dexvm.h>
@@ -696,8 +697,10 @@ static PyObject *ainodex_normalize_layer(PyObject *self, PyObject *args)
         PyObject *norm_o;
         PyObject *cueset_o = NULL;
         Word_t cueset_len = 0;
+        uint num_docs = 0;
 
-        if (!PyArg_ParseTuple(args, "OO|O", &scores_o, &norm_o, &cueset_o))
+        if (!PyArg_ParseTuple(args, "OO|OI", &scores_o, &norm_o,
+                        &cueset_o, &num_docs))
                 return NULL;
 
         if (!PyCObject_Check(scores_o)){
@@ -725,7 +728,7 @@ static PyObject *ainodex_normalize_layer(PyObject *self, PyObject *args)
                                 "cueset length");
                         return NULL;
                 }
-                dub_msg("CUESET_LEN %u", cueset_len);
+                dub_msg("CUESET_LEN %u NUM_DOC %u", cueset_len, num_docs);
         }
 
         layer_e *layer = PyCObject_AsVoidPtr(scores_o);
@@ -742,7 +745,20 @@ static PyObject *ainodex_normalize_layer(PyObject *self, PyObject *args)
                         /* Ixeme scoring formula */
                         if (cueset_len)
                                 /* Jaccard coefficent */
-                                sco /= *ptr1 + cueset_len - *ptr;
+                                
+                                /* NB: In some cases cueset might be created
+                                 * based on documents, not on segments, e.g. by
+                                 * specifying didmode=1 for ainodex.hits(). In
+                                 * this case, metas would be treated unfairly by
+                                 * cueset_len since they can occur only on one 
+                                 * segment per document. They can be given fair 
+                                 * treatment by explicitely providing the number 
+                                 * of documents in num_docs. */
+                                if (num_docs && xid >= XID_META_F &&
+                                        xid <= XID_META_L)
+                                        sco /= *ptr1 + num_docs - *ptr;
+                                else
+                                        sco /= *ptr1 + cueset_len - *ptr;
                         else
                                 /* P(q|w) */
                                 sco /= *ptr1;
