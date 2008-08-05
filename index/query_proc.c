@@ -176,7 +176,7 @@ glist *do_query(const glist *keys, uint did_mode)
 
         ret = xmalloc(sze * 4 + sizeof(glist));
         ret->len = sze;
-        i = 0;
+        i = idx = 0;
 
         if (stack->not){
                 J1FE(tst, stack->set, idx);
@@ -194,7 +194,7 @@ glist *do_query(const glist *keys, uint did_mode)
                 }
         }
 
-        dub_msg("IO %u", i);
+        dub_msg("IO %u LEN %u", i, ret->len);
                 
         J1FA(i, stack->set);
         return ret;
