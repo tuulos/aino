@@ -39,9 +39,7 @@ Help(opts.GenerateHelpText(g_env))
 
 modules = ['lib/SConstruct',
            'preproc/SConstruct',
-           'index/SConstruct',
-           'lang/SConstruct',
-           'circus/SConstruct']
+           'index/SConstruct']
 
 conf = Configure(g_env)
 
@@ -53,17 +51,17 @@ if not conf.CheckLib('Judy', autoadd=0):
 	print 'Did not find libJudy.a or Judy.lib, exiting!'
 	Exit(1)
 
-if not conf.CheckHeader('zlib.h', language='C'):
-	print 'Did not find zlib.h, exiting!'
-	Exit(1)
+#if not conf.CheckHeader('zlib.h', language='C'):
+#	print 'Did not find zlib.h, exiting!'
+#	Exit(1)
 
-if not conf.CheckLib('z', autoadd=0):
-	print 'Did not find libz.a or z.lib, exiting!'
-	Exit(1)
+#if not conf.CheckLib('z', autoadd=0):
+#	print 'Did not find libz.a or z.lib, exiting!'
+#	Exit(1)
 
-if not conf.CheckLib('readline', autoadd=0):
-	print 'Did not find libreadline.a, exiting!'
-	Exit(1)
+#if not conf.CheckLib('readline', autoadd=0):
+#	print 'Did not find libreadline.a, exiting!'
+#	Exit(1)
 
 #if g_env['DOCBDB']:
 #        if not conf.CheckLib('db', autoadd=0):
