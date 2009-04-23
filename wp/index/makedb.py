@@ -29,7 +29,7 @@ def process_page(p):
         txt = txt_re.search(p)
         title = title_re.search(p).group(1)
 	if ":" in title:
-		print >> sys.stderr, "Skipped", title
+		#print >> sys.stderr, "Skipped", title
 		return
         if txt:
                 unic = txt.group(1).decode("utf-8")

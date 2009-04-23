@@ -1,7 +1,5 @@
 
 export IBLOCK=$@
-export AINO=aino/preproc
-export SEGMENT_SIZE=500
 
 echo "$IBLOCK) Encoding inva.."
 $AINO/encode_inva
