@@ -2,7 +2,7 @@ August 9th 2008 / Ville Tuulos
 
 
 Aino - a Content-Based Search Engine
-------------------------------------
+====================================
 
 This package contains source code for the Aino search engine. In brief,
 Aino is a system for building optimized indices for documents made of
