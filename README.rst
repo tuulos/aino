@@ -85,3 +85,9 @@ scons
 
 That's all for now. Happy hacking!
 
+
+
+.. image:: https://d2weczhvl823v0.cloudfront.net/tuulos/aino/trend.png
+   :alt: Bitdeli badge
+   :target: https://bitdeli.com/free
+
