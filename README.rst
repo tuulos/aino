@@ -97,3 +97,9 @@ That's all for now. Happy hacking!
    :alt: Bitdeli badge
    :target: https://bitdeli.com/free
 
+
+
+.. image:: http://fixme/tuulos/aino
+   :alt: Bitdeli badge
+   :target: https://bitdeli.com/free
+
